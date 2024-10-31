@@ -118,7 +118,7 @@ gcc -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/linux" -shared -o jni_coon/libh
 javac -cp ./jni_coon -d jni_lib src/main/java/org/feuyeux/java/HelloJni.java
 ```
 
-#### run 
+#### run
 
 ```sh
 cd jni_lib
@@ -230,16 +230,16 @@ package org.feuyeux.java;
 import jnr.ffi.LibraryLoader;
 
 public class HelloJnr {
-  public interface CLibrary {
-    String sayHello(String name);
-  }
+    public interface CLibrary {
+        String sayHello(String name);
+    }
 
-  public static void main(String[] args) {
-    // cp lib/libhello.dylib /usr/local/lib
-    CLibrary clib = LibraryLoader.create(CLibrary.class).load("hello");
-    String jnrFfi = clib.sayHello("JNR FFI");
-    System.out.println("Java output: " + jnrFfi);
-  }
+    public static void main(String[] args) {
+        // cp lib/libhello.dylib /usr/local/lib
+        CLibrary clib = LibraryLoader.create(CLibrary.class).load("hello");
+        String jnrFfi = clib.sayHello("JNR FFI");
+        System.out.println("Java output: " + jnrFfi);
+    }
 }
 ```
 
@@ -289,3 +289,48 @@ java -cp ./:../jna_coon:$JNR_PATH:$JFFI_PATH:$JFFI_NATIVE_PATH:$ASM_PATH -Djava.
 C output: Hello JNR FFI
 Java output: Hello JNR FFI
 ```
+
+## 3 UT
+
+#### macOS
+
+```sh
+export jni_coon_path=/Users/hanl5/coding/feuyeux/hello-java-native/jni_coon
+export JAVA_LIBRARY_PATH=$JAVA_LIBRARY_PATH:$jni_coon_path
+mvn test -Dtest=hello.nativecode.HelloTest#testHelloJni
+```
+
+#### linux
+
+```sh
+export jni_coon_path=/mnt/d/coding/hello-java-native/jni_coon
+export LD_LIBRARY_PATH=$jni_coon_path:$LD_LIBRARY_PATH
+mvn test -Dtest=org.feuyeux.java.HelloTest#testHelloJni
+```
+
+```sh
+mvn test -Dtest=org.feuyeux.java.HelloTest#testHelloJna
+```
+
+```sh
+mvn test -Dtest=org.feuyeux.java.HelloTest#testHelloJnr
+```
+
+## 4 Benchmark
+#### macOS
+
+```sh
+export jni_coon_path=/Users/hanl5/coding/feuyeux/hello-java-native/jni_coon
+export JAVA_LIBRARY_PATH=$JAVA_LIBRARY_PATH:$jni_coon_path
+mvn test -Dtest=org.feuyeux.java.benchmark.HelloBenchmark
+```
+
+#### linux
+
+```sh
+export jni_coon_path=/mnt/d/coding/hello-java-native/jni_coon
+export LD_LIBRARY_PATH=$jni_coon_path:$LD_LIBRARY_PATH
+mvn test -Dtest=org.feuyeux.java.benchmark.HelloBenchmark
+```
+
+![2024-11-01-000143.png](image/2024-11-01-000143.png)

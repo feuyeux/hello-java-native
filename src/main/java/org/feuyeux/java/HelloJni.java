@@ -6,10 +6,11 @@ public class HelloJni {
         System.loadLibrary("hello");
     }
 
-    private native String sayHello(String name);
+    public native String sayHello(String name);
 
     public static void main(String[] args) {
-        String jniResult = new HelloJni().sayHello("JNI");
+        HelloJni helloJni = new HelloJni();
+        String jniResult = helloJni.sayHello("JNI");
         System.out.println("Java output:" + jniResult);
     }
 }

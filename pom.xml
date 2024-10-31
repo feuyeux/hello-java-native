@@ -6,10 +6,13 @@
 
     <groupId>org.example</groupId>
     <artifactId>hello-java-native</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
+
     <properties>
         <jna.version>5.15.0</jna.version>
         <jnr-ffi.version>2.2.13</jnr-ffi.version>
+        <jmh.version>1.37</jmh.version>
+        <junit.version>5.11.3</junit.version>
     </properties>
 
     <dependencies>
@@ -25,6 +28,25 @@
             <groupId>com.github.jnr</groupId>
             <artifactId>jnr-ffi</artifactId>
             <version>${jnr-ffi.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>${jmh.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>${jmh.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

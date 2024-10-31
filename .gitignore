@@ -8,3 +8,5 @@ target
 HelloJni.h
 HelloJni.class
 *.log
+*.h
+*.json

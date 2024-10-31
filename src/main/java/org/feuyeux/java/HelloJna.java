@@ -11,8 +11,12 @@ public class HelloJna {
         String sayHello(String name);
     }
 
+    public static String execute(String name) {
+        return CLibrary.clib.sayHello(name);
+    }
+
     public static void main(String[] args) {
-        String jnaResult = CLibrary.clib.sayHello("JNA");
+        String jnaResult = HelloJna.execute("JNA");
         System.out.println("Java output: " + jnaResult);
     }
 }
