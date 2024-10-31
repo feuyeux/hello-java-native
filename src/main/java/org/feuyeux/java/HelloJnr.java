@@ -1,3 +1,5 @@
+package org.feuyeux.java;
+
 import jnr.ffi.LibraryLoader;
 
 public class HelloJnr {

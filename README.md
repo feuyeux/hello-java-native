@@ -36,9 +36,11 @@ C/native        JNI impl
 
 ### 1.1 Java code
 
-`HelloJni.java`
+`org.feuyeux.java.HelloJni.java`
 
 ```java
+package org.feuyeux.java;
+
 public class HelloJni {
     // export LD_LIBRARY_PATH=...
     static {
@@ -54,60 +56,76 @@ public class HelloJni {
 }
 ```
 
-### 1.2 generate C head `HelloJni.h`
+### 1.2 generate C head `org.feuyeux.java.HelloJni.h`
 
 ```sh
 # generate head
-javac -h jni_lib src/main/java/HelloJni.java
+javac -h jni_lib src/main/java/org/feuyeux/java/HelloJni.java
 ```
 
 ### 1.3 C code `hello_jni.c`
 
 ```c
-#include <jni.h>      // JNI header provided by JDK
-#include <stdio.h>    // C Standard IO Header
-#include "HelloJni.h" // Generated
+#include <jni.h>
+#include <stdio.h>
+#include <string.h>
+#include "org_feuyeux_java_HelloJni.h"
 
 // Implementation of the native method sayHello()
-JNIEXPORT jstring JNICALL Java_HelloJni_sayHello(JNIEnv *env, jobject thisObj, jstring j_str)
+JNIEXPORT jstring JNICALL Java_org_feuyeux_java_HelloJni_sayHello(JNIEnv *env, jobject thisObj, jstring j_str)
 {
-    const jchar *c_str = NULL;
-    char cs[128] = "Hello ";
-    char *pBuff = cs + 6;
-    c_str = (*env)->GetStringCritical(env, j_str, NULL);
-    if (c_str != NULL)
-    {
-        while (*c_str)
-        {
-            *pBuff++ = *c_str++;
-        }
-        (*env)->ReleaseStringCritical(env, j_str, c_str);
-        printf("C output:%s\n", cs);
+    const char *c_str = (*env)->GetStringUTFChars(env, j_str, NULL);
+    if (c_str == NULL) {
+        return NULL; // Out of memory
     }
+
+    char cs[128] = "Hello ";
+    strncat(cs, c_str, sizeof(cs) - strlen(cs) - 1);
+
+    printf("C output: %s\n", cs);
+
+    (*env)->ReleaseStringUTFChars(env, j_str, c_str);
+
     return (*env)->NewStringUTF(env, cs);
 }
 ```
 
 ### 1.4 build
 
+#### macOS
+
 `libhello.dylib`
 
 ```sh
-# build c
 mkdir jni_coon
 gcc -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/darwin" -dynamiclib -o jni_coon/libhello.dylib jni_lib/hello_jni.c
 ```
 
-```sh
-# build java
-javac -cp ./jni_coon -d jni_coon src/main/java/HelloJni.java
-```
+#### Ubuntu
 
-### 1.5 run
+`libhello.so`
 
 ```sh
-cd jni_coon && java -Djava.library.path=. HelloJni
+mkdir jni_coon
+gcc -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/linux" -shared -o jni_coon/libhello.so jni_lib/hello_jni.c
 ```
+
+### 1.5 build & run java
+
+#### build
+
+```sh
+javac -cp ./jni_coon -d jni_lib src/main/java/org/feuyeux/java/HelloJni.java
+```
+
+#### run 
+
+```sh
+cd jni_lib
+java -Djava.library.path=../jni_coon org.feuyeux.java.HelloJni
+```
+
+#### output
 
 ```sh
 C output:Hello JNI
@@ -120,8 +138,7 @@ Java output:Hello JNI
 
 ```sh
 mkdir jna_lib
-cd jna_lib
-code hello.c
+touch jna_lib/hello.c
 ```
 
 `hello.c`
@@ -140,14 +157,27 @@ char* sayHello(char *name)
 
 ### 2.2 build `libhello.dylib`
 
+#### macOS
+
 ```sh
-cd jna_lib
-gcc -fPIC -shared -o libhello.dylib hello.c
+mkdir jna_coon
+gcc -fPIC -shared -o jna_coon/libhello.dylib jna_lib/hello.c
+```
+
+#### Ubuntu
+
+```sh
+mkdir jna_coon
+gcc -fPIC -shared -o jna_coon/libhello.so jna_lib/hello.c
 ```
 
 ### 2.3-1 JNA
 
+#### java code
+
 ```java
+package org.feuyeux.java;
+
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 
@@ -161,19 +191,29 @@ public class HelloJna {
 
     public static void main(String[] args) {
         String jnaResult = CLibrary.clib.sayHello("JNA");
-        System.out.println("Java output:" + jnaResult);
+        System.out.println("Java output: " + jnaResult);
     }
 }
 ```
 
+#### build
+
 ```sh
+# jna.version
 # ls $HOME/.m2/repository/net/java/dev/jna/jna
-export VERSION=5.13.0
+export VERSION=5.15.0
 export JNA_PATH=$HOME/.m2/repository/net/java/dev/jna/jna/$VERSION/jna-$VERSION.jar
-mkdir jna_coon
-javac -cp $JNA_PATH -d jna_coon src/main/java/HelloJna.java 
-java -cp ./jna_lib:$JNA_PATH:./jna_coon HelloJna
+javac -cp $JNA_PATH -d jna_lib src/main/java/org/feuyeux/java/HelloJna.java
 ```
+
+#### run
+
+```sh
+cd jna_lib
+java -cp ./:$JNA_PATH:../jna_coon org.feuyeux.java.HelloJna
+```
+
+#### output
 
 ```sh
 C output: Hello JNA
@@ -181,6 +221,29 @@ Java output: Hello JNA
 ```
 
 ### 2.3-2 JNR
+
+#### java code
+
+```java
+package org.feuyeux.java;
+
+import jnr.ffi.LibraryLoader;
+
+public class HelloJnr {
+  public interface CLibrary {
+    String sayHello(String name);
+  }
+
+  public static void main(String[] args) {
+    // cp lib/libhello.dylib /usr/local/lib
+    CLibrary clib = LibraryLoader.create(CLibrary.class).load("hello");
+    String jnrFfi = clib.sayHello("JNR FFI");
+    System.out.println("Java output: " + jnrFfi);
+  }
+}
+```
+
+#### build
 
 ```sh
 mvn dependency:tree |grep jnr -A 10
@@ -198,6 +261,7 @@ mvn dependency:tree |grep jnr -A 10
 ```
 
 ```sh
+# jnr-ffi.version
 export VERSION=2.2.13
 export JFFI_VERSION=1.3.10
 export ASM_VERSION=9.2
@@ -208,10 +272,18 @@ export ASM_PATH=$HOME/.m2/repository/org/ow2/asm/asm/$ASM_VERSION/asm-$ASM_VERSI
 ```
 
 ```sh
-mkdir jnr_coon
-javac -cp $JNR_PATH -d jnr_coon src/main/java/HelloJnr.java
-java -cp ./jna_lib:$JNR_PATH:$JFFI_PATH:$JFFI_NATIVE_PATH:$ASM_PATH:./jnr_coon -Djava.library.path=jna_lib HelloJnr
+mkdir jnr_lib
+javac -cp ./jna_coon:$JNR_PATH -d jnr_lib src/main/java/org/feuyeux/java/HelloJnr.java
 ```
+
+#### run
+
+```sh
+cd jnr_lib
+java -cp ./:../jna_coon:$JNR_PATH:$JFFI_PATH:$JFFI_NATIVE_PATH:$ASM_PATH -Djava.library.path=../jna_coon org.feuyeux.java.HelloJnr
+```
+
+#### output
 
 ```sh
 C output: Hello JNR FFI

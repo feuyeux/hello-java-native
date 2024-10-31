@@ -1,3 +1,5 @@
+package org.feuyeux.java;
+
 public class HelloJni {
     // export LD_LIBRARY_PATH=...
     static {

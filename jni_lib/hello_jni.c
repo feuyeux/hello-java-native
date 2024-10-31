@@ -1,22 +1,22 @@
-#include <jni.h>      // JNI header provided by JDK
-#include <stdio.h>    // C Standard IO Header
-#include "HelloJni.h" // Generated
+#include <jni.h>
+#include <stdio.h>
+#include <string.h>
+#include "org_feuyeux_java_HelloJni.h"
 
 // Implementation of the native method sayHello()
-JNIEXPORT jstring JNICALL Java_HelloJni_sayHello(JNIEnv *env, jobject thisObj, jstring j_str)
+JNIEXPORT jstring JNICALL Java_org_feuyeux_java_HelloJni_sayHello(JNIEnv *env, jobject thisObj, jstring j_str)
 {
-    const jchar *c_str = NULL;
-    char cs[128] = "Hello ";
-    char *pBuff = cs + 6;
-    c_str = (*env)->GetStringCritical(env, j_str, NULL);
-    if (c_str != NULL)
-    {
-        while (*c_str)
-        {
-            *pBuff++ = *c_str++;
-        }
-        (*env)->ReleaseStringCritical(env, j_str, c_str);
-        printf("C output:%s\n", cs);
+    const char *c_str = (*env)->GetStringUTFChars(env, j_str, NULL);
+    if (c_str == NULL) {
+        return NULL; // Out of memory
     }
+
+    char cs[128] = "Hello ";
+    strncat(cs, c_str, sizeof(cs) - strlen(cs) - 1);
+
+    printf("C output: %s\n", cs);
+
+    (*env)->ReleaseStringUTFChars(env, j_str, c_str);
+
     return (*env)->NewStringUTF(env, cs);
 }
