@@ -3,6 +3,7 @@
 .vscode
 target
 *.dylib
+*_lib
 *_coon
 *.class
 HelloJni.h

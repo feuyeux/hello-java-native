@@ -1,6 +1,6 @@
 # Java Native
 
-## 0 Reference
+## 1 Concept
 
 **JNI**(Java Native Interface) <https://docs.oracle.com/en/java/javase/19/docs/specs/jni/>
 
@@ -32,9 +32,11 @@ C/native        JNI impl
                 Target Library
 ```
 
-## 1 JNI
+## 2 Usage
 
-### 1.1 Java code
+### 2.1 JNI
+
+#### 1 Java code
 
 `org.feuyeux.java.HelloJni.java`
 
@@ -56,14 +58,14 @@ public class HelloJni {
 }
 ```
 
-### 1.2 generate C head `org.feuyeux.java.HelloJni.h`
+#### 2 C header file
 
 ```sh
 # generate head
 javac -h jni_lib src/main/java/org/feuyeux/java/HelloJni.java
 ```
 
-### 1.3 C code `hello_jni.c`
+#### 3 C impl file
 
 ```c
 #include <jni.h>
@@ -90,9 +92,9 @@ JNIEXPORT jstring JNICALL Java_org_feuyeux_java_HelloJni_sayHello(JNIEnv *env, j
 }
 ```
 
-### 1.4 build
+#### 1.4 build
 
-#### macOS
+##### macOS
 
 `libhello.dylib`
 
@@ -101,7 +103,7 @@ mkdir jni_coon
 gcc -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/darwin" -dynamiclib -o jni_coon/libhello.dylib jni_lib/hello_jni.c
 ```
 
-#### Ubuntu
+##### Ubuntu
 
 `libhello.so`
 
@@ -110,31 +112,31 @@ mkdir jni_coon
 gcc -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/linux" -shared -o jni_coon/libhello.so jni_lib/hello_jni.c
 ```
 
-### 1.5 build & run java
+#### 1.5 build & run java
 
-#### build
+##### build
 
 ```sh
 javac -cp ./jni_coon -d jni_lib src/main/java/org/feuyeux/java/HelloJni.java
 ```
 
-#### run
+##### run
 
 ```sh
 cd jni_lib
 java -Djava.library.path=../jni_coon org.feuyeux.java.HelloJni
 ```
 
-#### output
+##### output
 
 ```sh
 C output:Hello JNI
 Java output:Hello JNI
 ```
 
-## 2 JNA/JNR
+### 2.2 JNA/JNR
 
-### 2.1 C code
+#### 1 C code
 
 ```sh
 mkdir jna_lib
@@ -155,25 +157,25 @@ char* sayHello(char *name)
 }
 ```
 
-### 2.2 build `libhello.dylib`
+#### 2 build `libhello.dylib`
 
-#### macOS
+##### macOS
 
 ```sh
 mkdir jna_coon
 gcc -fPIC -shared -o jna_coon/libhello.dylib jna_lib/hello.c
 ```
 
-#### Ubuntu
+##### Ubuntu
 
 ```sh
 mkdir jna_coon
 gcc -fPIC -shared -o jna_coon/libhello.so jna_lib/hello.c
 ```
 
-### 2.3-1 JNA
+#### 3-1 JNA
 
-#### java code
+##### java code
 
 ```java
 package org.feuyeux.java;
@@ -196,7 +198,7 @@ public class HelloJna {
 }
 ```
 
-#### build
+##### build
 
 ```sh
 # jna.version
@@ -206,23 +208,23 @@ export JNA_PATH=$HOME/.m2/repository/net/java/dev/jna/jna/$VERSION/jna-$VERSION.
 javac -cp $JNA_PATH -d jna_lib src/main/java/org/feuyeux/java/HelloJna.java
 ```
 
-#### run
+##### run
 
 ```sh
 cd jna_lib
 java -cp ./:$JNA_PATH:../jna_coon org.feuyeux.java.HelloJna
 ```
 
-#### output
+##### output
 
 ```sh
 C output: Hello JNA
 Java output: Hello JNA
 ```
 
-### 2.3-2 JNR
+#### 3-2 JNR
 
-#### java code
+##### java code
 
 ```java
 package org.feuyeux.java;
@@ -243,7 +245,7 @@ public class HelloJnr {
 }
 ```
 
-#### build
+##### build
 
 ```sh
 mvn dependency:tree |grep jnr -A 10
@@ -276,14 +278,14 @@ mkdir jnr_lib
 javac -cp ./jna_coon:$JNR_PATH -d jnr_lib src/main/java/org/feuyeux/java/HelloJnr.java
 ```
 
-#### run
+##### run
 
 ```sh
 cd jnr_lib
 java -cp ./:../jna_coon:$JNR_PATH:$JFFI_PATH:$JFFI_NATIVE_PATH:$ASM_PATH -Djava.library.path=../jna_coon org.feuyeux.java.HelloJnr
 ```
 
-#### output
+##### output
 
 ```sh
 C output: Hello JNR FFI
@@ -292,15 +294,15 @@ Java output: Hello JNR FFI
 
 ## 3 UT
 
-#### macOS
+### macOS
 
 ```sh
 export jni_coon_path=/Users/hanl5/coding/feuyeux/hello-java-native/jni_coon
 export JAVA_LIBRARY_PATH=$JAVA_LIBRARY_PATH:$jni_coon_path
-mvn test -Dtest=hello.nativecode.HelloTest#testHelloJni
+mvn test -Dtest=org.feuyeux.java.HelloTest#testHelloJni
 ```
 
-#### linux
+### linux
 
 ```sh
 export jni_coon_path=/mnt/d/coding/hello-java-native/jni_coon
@@ -317,7 +319,7 @@ mvn test -Dtest=org.feuyeux.java.HelloTest#testHelloJnr
 ```
 
 ## 4 Benchmark
-#### macOS
+### macOS
 
 ```sh
 export jni_coon_path=/Users/hanl5/coding/feuyeux/hello-java-native/jni_coon
@@ -325,7 +327,7 @@ export JAVA_LIBRARY_PATH=$JAVA_LIBRARY_PATH:$jni_coon_path
 mvn test -Dtest=org.feuyeux.java.benchmark.HelloBenchmark
 ```
 
-#### linux
+### linux
 
 ```sh
 export jni_coon_path=/mnt/d/coding/hello-java-native/jni_coon
