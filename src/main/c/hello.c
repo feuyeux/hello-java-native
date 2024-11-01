@@ -1,9 +1,9 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-char* sayHello(char *name)
-{
-    static char buffer[50];
-    snprintf(buffer, sizeof(buffer), "Hello %s", name);
-    printf("C output: %s\n", buffer);
-    return buffer;
+char* sayHello(const char* name) {
+    char* result = malloc(100);  // 为结果分配内存
+    sprintf(result, "Hello %s", name);
+    return result;
 }
