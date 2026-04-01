@@ -10,7 +10,7 @@
 
     <properties>
         <jna.version>5.18.1</jna.version>
-        <jnr-ffi.version>2.2.18</jnr-ffi.version>
+        <jnr-ffi.version>2.2.19</jnr-ffi.version>
         <jmh.version>1.37</jmh.version>
         <junit.version>6.0.3</junit.version>
     </properties>
